@@ -4,7 +4,7 @@ import "context"
 
 type TransferTxParams struct {
 	FromAccountID int64 `json:"from_account_id"`
-	ToAccountID   int64 `json:"to_json_id"`
+	ToAccountID   int64 `json:"to_account_id"`
 	Amount        int64 `json:"amount"`
 }
 
@@ -18,7 +18,9 @@ type TransferTxResult struct {
 
 func (store *SQLStore) TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
 	var result TransferTxResult
+
 	err := store.execTx(ctx, func(q *Queries) error {
+
 		var err error
 		result.Transfer, err = q.CreateTransfer(ctx, CreateTransferParams{
 			FromAccountID: arg.FromAccountID,

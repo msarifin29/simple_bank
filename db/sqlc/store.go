@@ -11,10 +11,10 @@ type Store interface {
 	TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error)
 }
 type SQLStore struct {
-	*Queries
 	connPoll *pgxpool.Pool
+	*Queries
 }
 
-func NewStore(connPoll *pgxpool.Pool) *SQLStore {
+func NewStore(connPoll *pgxpool.Pool) Store {
 	return &SQLStore{connPoll: connPoll, Queries: New(connPoll)}
 }

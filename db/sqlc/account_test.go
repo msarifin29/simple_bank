@@ -14,7 +14,7 @@ func CreateAccount(t *testing.T) Account {
 		Balance:  util.RandomMoney(),
 		Currency: util.RandomCurrency(),
 	}
-	account, err := testQueries.CreateAccount(context.Background(), arg)
+	account, err := testStore.CreateAccount(context.Background(), arg)
 	assert.Nil(t, err)
 	assert.NotNil(t, account)
 	assert.Equal(t, arg.Owner, account.Owner)
@@ -30,7 +30,7 @@ func TestCreateAccount(t *testing.T) {
 
 func TestGetAccount(t *testing.T) {
 	account1 := CreateAccount(t)
-	account2, err := testQueries.GetAccount(context.Background(), account1.ID)
+	account2, err := testStore.GetAccount(context.Background(), account1.ID)
 	assert.Nil(t, err)
 	assert.NotNil(t, account2)
 	assert.Equal(t, account1.ID, account2.ID)
@@ -46,7 +46,7 @@ func TestUpdateAccount(t *testing.T) {
 		ID:      account1.ID,
 		Balance: util.RandomMoney(),
 	}
-	err := testQueries.UpdateAccount(context.Background(), arg)
+	err := testStore.UpdateAccount(context.Background(), arg)
 	assert.Nil(t, err)
 }
 func TestListAccount(t *testing.T) {
@@ -58,7 +58,7 @@ func TestListAccount(t *testing.T) {
 		Offset: 0,
 	}
 
-	accounts, err := testQueries.ListAccounts(context.Background(), arg)
+	accounts, err := testStore.ListAccounts(context.Background(), arg)
 	assert.Nil(t, err)
 	assert.NotNil(t, accounts)
 	for _, account := range accounts {
@@ -68,6 +68,6 @@ func TestListAccount(t *testing.T) {
 	}
 }
 func TestDeleteccount(t *testing.T) {
-	err := testQueries.DeleteAccount(context.Background(), 1)
+	err := testStore.DeleteAccount(context.Background(), 1)
 	assert.Nil(t, err)
 }
