@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestTransfer(t *testing.T) {
+func TestTransferTx(t *testing.T) {
 	account1 := CreateAccount(t)
 	account2 := CreateAccount(t)
 	fmt.Println("before >> ", account1.Balance, account2.Balance)
@@ -56,7 +56,7 @@ func TestTransfer(t *testing.T) {
 		fromEntity := result.FromEntry
 		require.NotEmpty(t, fromEntity)
 		require.Equal(t, account1.ID, fromEntity.AccountID)
-		require.Equal(t, amount, fromEntity.Amount)
+		require.Equal(t, -amount, fromEntity.Amount)
 		require.NotZero(t, fromEntity.CreatedAt)
 		require.NotZero(t, fromEntity.ID)
 
@@ -114,4 +114,51 @@ func TestTransfer(t *testing.T) {
 
 	require.Equal(t, account1.Balance-int64(n)*amount, updateAccount1.Balance)
 	require.Equal(t, account2.Balance+int64(n)*amount, updateAccount2.Balance)
+}
+func TestTransferTxDeadLock(t *testing.T) {
+	account1 := CreateAccount(t)
+	account2 := CreateAccount(t)
+	fmt.Println("before >> ", account1.Balance, account2.Balance)
+
+	n := 10
+	amount := int64(10)
+
+	errs := make(chan error)
+
+	for i := 0; i < n; i++ {
+		fromAccount := account1.ID
+		toAccount := account2.ID
+
+		if i%2 == 1 {
+			fromAccount = account2.ID
+			toAccount = account1.ID
+		}
+
+		go func() {
+
+			_, err := testStore.TransferTx(context.Background(), TransferTxParams{
+				FromAccountID: fromAccount,
+				ToAccountID:   toAccount,
+				Amount:        amount,
+			})
+			errs <- err
+		}()
+	}
+
+	for i := 0; i < n; i++ {
+		err := <-errs
+		require.NoError(t, err)
+	}
+
+	// check final update balance
+	updateAccount1, err := testStore.GetAccount(context.Background(), account1.ID)
+	require.NoError(t, err)
+
+	updateAccount2, err := testStore.GetAccount(context.Background(), account2.ID)
+	require.NoError(t, err)
+
+	fmt.Println(`>> after :`, updateAccount1.Balance, updateAccount2.Balance)
+
+	require.Equal(t, account1.Balance, updateAccount1.Balance)
+	require.Equal(t, account2.Balance, updateAccount2.Balance)
 }
