@@ -1,6 +1,6 @@
 module github.com/msarifin29/simple_bank
 
-go 1.21.6
+go 1.21
 
 require (
 	github.com/jackc/pgx/v5 v5.5.2
