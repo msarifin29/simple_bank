@@ -9,19 +9,18 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/lib/pq"
-)
-
-const (
-	dbDriver = "postgresql"
-	dbSource = "postgresql://root:12345@localhost:5432/simple_bank?sslmode=disable"
+	"github.com/msarifin29/simple_bank/util"
 )
 
 // var testQueries *Queries
 var testStore Store
 
 func TestMain(m *testing.M) {
-	connPool, err := pgxpool.New(context.Background(), dbSource)
-	//conn, err := sql.Open(dbDriver, dbSource)
+	config, err := util.LoadConfig("../..")
+	if err != nil {
+		log.Fatal("cannot load config : ", err)
+	}
+	connPool, err := pgxpool.New(context.Background(), config.DBSource)
 	if err != nil {
 		log.Fatal("cannot connect to db : ", err)
 	}
