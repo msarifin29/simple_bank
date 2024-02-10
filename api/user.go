@@ -5,19 +5,18 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/lib/pq"
 	db "github.com/msarifin29/simple_bank/db/sqlc"
 	"github.com/msarifin29/simple_bank/util"
 )
 
 type CreateUserRequest struct {
-	Username string `json:"user_name" binding:"required"`
-	Password string `json:"password" binding:"required"`
+	Username string `json:"username" binding:"required,alphanum"`
+	Password string `json:"password" binding:"required,min=6"`
 	FullName string `json:"full_name" binding:"required"`
-	Email    string `json:"email" binding:"required"`
+	Email    string `json:"email" binding:"required,email"`
 }
 type UserResponse struct {
-	Username          string    `json:"user_name"`
+	Username          string    `json:"username"`
 	FullName          string    `json:"full_name"`
 	Email             string    `json:"email"`
 	PasswordChangedAt time.Time `json:"password_changed_at"`
@@ -55,12 +54,9 @@ func (server *Server) createUser(ctx *gin.Context) {
 	user, errC := server.store.CreateUser(ctx, arg)
 
 	if errC != nil {
-		if pqError, ok := err.(*pq.Error); ok {
-			switch pqError.Code.Name() {
-			case "unnique_violation":
-				ctx.JSON(http.StatusForbidden, errorResponse(errC))
-				return
-			}
+		if db.ErrorCode(err) == db.UniqueViolation {
+			ctx.JSON(http.StatusForbidden, errorResponse(errC))
+			return
 		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(errC))
 		return
