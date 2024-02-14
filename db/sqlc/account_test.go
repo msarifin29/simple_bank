@@ -9,8 +9,9 @@ import (
 )
 
 func CreateAccount(t *testing.T) Account {
+	user := CreateUser(t)
 	arg := CreateAccountParams{
-		Owner:    util.RandomOwner(),
+		Owner:    user.Username,
 		Balance:  util.RandomMoney(),
 		Currency: util.RandomCurrency(),
 	}
@@ -50,21 +51,22 @@ func TestUpdateAccount(t *testing.T) {
 	assert.Nil(t, err)
 }
 func TestListAccount(t *testing.T) {
+	var lastAccount Account
 	for i := 0; i < 5; i++ {
-		CreateAccount(t)
+		lastAccount = CreateAccount(t)
 	}
 	arg := ListAccountsParams{
+		Owner:  lastAccount.Owner,
 		Limit:  5,
 		Offset: 0,
 	}
 
 	accounts, err := testStore.ListAccounts(context.Background(), arg)
 	assert.Nil(t, err)
-	assert.NotNil(t, accounts)
+	assert.NotEmpty(t, accounts)
 	for _, account := range accounts {
-		assert.NoError(t, err)
 		assert.NotEmpty(t, account)
-
+		assert.Equal(t, lastAccount.Owner, account.Owner)
 	}
 }
 func TestDeleteccount(t *testing.T) {
